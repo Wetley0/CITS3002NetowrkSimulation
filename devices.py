@@ -1,9 +1,10 @@
 class Host:
-    def __init__(self, name, ip, mac, network):
+    def __init__(self, name, ip, mac, network, port=8000):
         self.name = name
         self.ip = ip
         self.mac = mac
         self.network = network
+        self.port = port
         self.seq = 0
     def send_data(self, data, dest_ip):
         return
