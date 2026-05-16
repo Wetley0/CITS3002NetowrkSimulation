@@ -21,3 +21,5 @@ class Router:
         return
     def process_packet(self, packet):
         return
+    def forward_packet(self, packet, outgoing_interface, next_mac):
+        return
