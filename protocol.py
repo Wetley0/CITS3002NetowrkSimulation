@@ -9,6 +9,7 @@ class Packet:
     def __init__ (self, src_ip, dest_ip, ttl, protocol, tot_len, payload_segment):
         self.src_ip = src_ip
         self.dest_ip = dest_ip
+        self.ttl = ttl
         self.protocol = protocol
         self.tot_len = tot_len
         self.payload_segment = payload_segment
@@ -33,15 +34,16 @@ class Segment:
         
         self.length = 12 + len(data_bytes)
         self.checksum = self.checksum_calc()
+        
     def encapsulate(self):
-        packet = bytearray()
+        segment = bytearray()
 
-        packet += self.src_port.to_bytes(2, 'big')
-        packet += self.dest_port.to_bytes(2, 'big')
-        packet += self.length.to_bytes(2, 'big')
-        packet += self.checksum.to_bytes(2, 'big')
-        packet += self.type.to_bytes(2, 'big')
-        packet += self.seq_num.to_bytes(2, 'big')
+        segment += self.src_port.to_bytes(2, 'big')
+        segment += self.dest_port.to_bytes(2, 'big')
+        segment += self.length.to_bytes(2, 'big')
+        segment += self.checksum.to_bytes(2, 'big')
+        segment += self.type.to_bytes(2, 'big')
+        segment += self.seq_num.to_bytes(2, 'big')
         
         # Plan to edit this later once i understand if data comes in bytes or not
         # data must be bytes
@@ -50,8 +52,8 @@ class Segment:
         # else:
         #     data_bytes = self.data
 
-        packet += self.data_bytes
-        return bytes(packet)
+        segment += self.data_bytes
+        return bytes(segment)
     
     def checksum_calc(self):
         total = 0
@@ -83,3 +85,5 @@ class Segment:
         checksum = ~total & 0xFFFF
 
         return checksum
+    
+    # Eventually will need some functions for segmentation and rdt2.2 and a way to max out at 50 bytes!!
