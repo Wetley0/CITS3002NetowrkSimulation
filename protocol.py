@@ -1,20 +1,28 @@
-class Frame:
+class Datalink:
     def __init__ (self, src_mac, dest_mac, type, payload_packet):
         self.src_mac = src_mac
         self.dest_mac = dest_mac
         self.type = type
         self.payload_packet = payload_packet
 
-class Packet:
-    def __init__ (self, src_ip, dest_ip, ttl, protocol, tot_len, payload_segment):
+class Network:
+    def __init__ (self, src_ip, dest_ip, protocol, tot_len, payload_segment):
         self.src_ip = src_ip
         self.dest_ip = dest_ip
-        self.ttl = ttl
+        self.ttl = 100
         self.protocol = protocol
-        self.tot_len = tot_len
+        self.tot_len = len(payload_segment)
         self.payload_segment = payload_segment
+    def encapsulate(self):
+        packet = {
+            "src_ip": self.src_ip,
+            "dest_ip": self.dest_ip,
+            "ttl": self.ttl,
+            "protocol": self.protocol
+        }
+        return packet
 
-class Segment:
+class Transport:
     def __init__ (self, src_port, dest_port, type, data):
         self.src_port = src_port
         self.dest_port = dest_port
