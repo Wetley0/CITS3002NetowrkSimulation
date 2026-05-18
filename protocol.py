@@ -30,8 +30,6 @@ class Network:
             "payload_segment": self.payload_segment
         }
         return packet
-    def routing(self, packet, name, routing_table):
-        return
 
 
 class Transport:

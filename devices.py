@@ -1,14 +1,20 @@
 from protocol import Transport, Network, Datalink
 class Host:
-    def __init__(self, name, routing_table, ip, mac, network, port=8000):
+    def __init__(self, name, routing_table, mac_table, ip, mac, network, mac_obj_table={}, port=8000):
         self.name = name
         self.ip = ip
         self.mac = mac
         self.network = network
         self.port = port
+        self.mac_table = mac_table
         self.routing_table = routing_table
         self.seq = 0
-    def send_data(self, data, dest_ip, dest_port, dest_mac):
+
+        # For now maybe for good not sure but this will hold a dictionary of the objects connected to hosts
+        self.mac_obj_table = mac_obj_table
+        # If we can find a better method to bring in objects to the class to send data to then good
+
+    def send_data(self, data, dest_ip, dest_port):
         payload_segment = Transport(self.port, dest_port, 0, data).encapsulate()
         packet = Network(self.ip, dest_ip, 17, 0, payload_segment).encapsulate()
         # print(packet)
@@ -18,13 +24,18 @@ class Host:
 
         # Keep in mind for later I am passing the next hop and interface as parameters. (that do not go in init of datalink object) I do not know how you are meant to actually do so check this later when working
         # Also we may not need interface in the routing tables for hosts but now it is just a blank string maybe delete later
-        frame = Datalink(self.mac, dest_mac, "0x0800", packet)
-
+        dest_mac = self.mac_table_lookup(next_hop)
+        frame = Datalink(self.mac, dest_mac, "0x0800", packet).encapsulate()
+        router = self.mac_obj_table[dest_mac]
+        router.receive_frame(frame, interface)
+        
         return
     def receive(self, frame):
         return
     def handle_ack(self, ack_seq):
         return
+    def attach_neighbour(self, ip, neighbour):
+        self.neighbours[ip] = neighbour
     
     # Routing is different fom host to router so the function will be within their respective classes
     def routing(self, packet):
@@ -44,13 +55,19 @@ class Host:
         print(self.name, ": Layer 3: Outgoing interface selected ", interface)
         
         return interface, next_hop
+    
+    # Debugs will needed to be added to this later (like what is that ip address does not exist in mac_table so on)
+    def mac_table_lookup(self, next_hop):
+        return self.mac_table[next_hop]
 
 class Router:
-    def __init__(self, name, routing_table):
+    def __init__(self, name, routing_table, mac_obj_table={}):
         self.name = name
         self.routing_table = routing_table
         self.mac_table = {}
+        self.mac_obj_table = mac_obj_table
     def receive_frame(self, frame, incoming_interface):
+        print("frame received", frame, "With interface", incoming_interface)
         return
     def process_packet(self, packet):
         return
