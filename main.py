@@ -1,5 +1,5 @@
 from devices import Host, Router
-from protocol import Frame, Packet, Segment
+from protocol import Datalink, Network, Transport
 import config
 
 class Main:
@@ -13,10 +13,15 @@ class Main:
         })
         return
     def send_data(self, src_host, dest_host, data):
-        segment_init = Segment(src_host.port, dest_host.port, src_host.seq, data)
+        segment_init = Transport(src_host.port, dest_host.port, src_host.seq, data)
         segment = segment_init.encapsulate()
-        packet = Packet(src_host.ip, dest_host.ip, 0, 0, 0, segment)
-        
+        packet_init = Network(src_host.ip, dest_host.ip, 17, 0, segment)
+        packet = packet_init.encapsulate()
+        frame = Datalink()
+
+        R1_datalink = Datalink
+        R1_recieve = R1_datalink.recieve_frame(frame)
+
         # print(segment.length)
         # print(segment.data_bytes)
         # binary_list = [f"{b:08b}" for b in segment.data_bytes]
