@@ -25,65 +25,22 @@ class Segment:
         self.seq_num = 0
         self.data = data
         
-        if isinstance(self.data, str):
-            data_bytes = self.data.encode()
-        else:
-            data_bytes = self.data
-
-        self.data_bytes = data_bytes
-        
-        self.length = 12 + len(data_bytes)
+        self.length = 10 + len(data)
         self.checksum = self.checksum_calc()
-        
+
     def encapsulate(self):
-        segment = bytearray()
-
-        segment += self.src_port.to_bytes(2, 'big')
-        segment += self.dest_port.to_bytes(2, 'big')
-        segment += self.length.to_bytes(2, 'big')
-        segment += self.checksum.to_bytes(2, 'big')
-        segment += self.type.to_bytes(2, 'big')
-        segment += self.seq_num.to_bytes(2, 'big')
-        
-        # Plan to edit this later once i understand if data comes in bytes or not
-        # data must be bytes
-        # if isinstance(self.data, str):
-        #     data_bytes = self.data.encode()
-        # else:
-        #     data_bytes = self.data
-
-        segment += self.data_bytes
-        return bytes(segment)
+        segment = {
+            "src_port": self.src_port,
+            "dst_port": self.dest_port,
+            "length": self.length,
+            "checksum": self.checksum,
+            "type": self.type,   # 0 = DATA, 1 = ACK
+            "seq": self.seq_num,
+            "data": self.data
+        }
+        return segment
     
     def checksum_calc(self):
-        total = 0
-
-        # build all bytes
-        fields = bytearray()
-        fields += self.src_port.to_bytes(2, 'big')
-        fields += self.dest_port.to_bytes(2, 'big')
-        fields += self.length.to_bytes(2, 'big')
-        fields += self.type.to_bytes(2, 'big')
-        fields += self.seq_num.to_bytes(2, 'big')
-
-        # Again plan to fix this later
-        # if isinstance(self.data, str):
-        #     data_bytes = self.data.encode()
-        # else:
-        #     data_bytes = self.data
-        
-        fields += self.data_bytes
-
-        # sum all bytes
-        for byte in fields:
-            total += byte
-
-        # wrap around (keep it 16-bit like UDP)
-        total = (total & 0xFFFF) + (total >> 16)
-
-        # one's complement (invert bits)
-        checksum = ~total & 0xFFFF
-
-        return checksum
+        return
     
     # Eventually will need some functions for segmentation and rdt2.2 and a way to max out at 50 bytes!!
