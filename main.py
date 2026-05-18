@@ -13,8 +13,15 @@ class Main:
         })
         return
     def send_data(self, src_host, dest_host, data):
-        segment = Segment(src_host.port, dest_host.port, src_host.seq, data)
-        print(segment.length)
+        segment_init = Segment(src_host.port, dest_host.port, src_host.seq, data)
+        segment = segment_init.encapsulate()
+        packet = Packet(src_host.ip, dest_host.ip, 0, 0, 0, segment)
+        
+        # print(segment.length)
+        # print(segment.data_bytes)
+        # binary_list = [f"{b:08b}" for b in segment.data_bytes]
+        # binary_string = " ".join(binary_list)
+        # print(binary_string)
 
 if __name__ == "__main__":
     app = Main()
