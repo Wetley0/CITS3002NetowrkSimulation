@@ -11,7 +11,7 @@ class Main:
                         config.HOST_A_MAC,
                         "LAN1")
         
-        self.host_b = Host("Host B", {"default": "10.0.2.1"}, {"10.0.2.1": "BB:BB:BB:BB:BB:BB"}, config.HOST_B_IP, config.HOST_B_MAC, "LAN2")
+        self.host_b = Host("Host B", {"default": ("", "10.0.2.1")}, {"10.0.2.1": "CC:CC:CC:CC:CC:CC"}, config.HOST_B_IP, config.HOST_B_MAC, "LAN2")
 
 
         self.router = Router("Router R1", {
@@ -32,7 +32,7 @@ class Main:
 
         return
     def send_data(self, src_host, dest_host, data):
-        src_host.send_data(data, dest_host.ip, dest_host.port)
+        src_host.send_data(data, dest_host.ip, 0, dest_host.port)
         
         # segment_init = Transport(src_host.port, dest_host.port, src_host.seq, data)
         # segment = segment_init.encapsulate()

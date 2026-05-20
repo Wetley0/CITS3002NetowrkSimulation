@@ -8,14 +8,22 @@ class Host:
         self.port = port
         self.mac_table = mac_table
         self.routing_table = routing_table
+
+
+        # The ACK doesn't know the desired ip's, so we are storing it here for now
+        self.dest_ip = 0;
+
+        
         self.seq = 0
+        self.expected_ack = 0
 
         # For now maybe for good not sure but this will hold a dictionary of the objects connected to hosts
         self.mac_obj_table = mac_obj_table
         # If we can find a better method to bring in objects to the class to send data to then good
 
-    def send_data(self, data, dest_ip, dest_port):
-        payload_segment = Transport(self.port, dest_port, 0, data).encapsulate()
+    def send_data(self, data, dest_ip, type, dest_port):
+
+        payload_segment = Transport(self.port, dest_port, type, data).encapsulate()
         packet = Network(self.ip, dest_ip, 17, 0, payload_segment).encapsulate()
         # print(packet)
         
@@ -33,9 +41,10 @@ class Host:
     # Incomign interface i beleive should not work this way (potentially looking at src_mac and finding it from there)
     def receive_frame(self, frame, incoming_interface):
         print(self.name, ": Layer 2: Frame recieved")
-
         print(self.name, ": Layer 2: Source MAC learned: ", frame["src_mac"])
         
+
+
         payload_packet = frame['payload_packet']
         print(self.name, ": Layer 2: Packet delivered to Network layer")
         print("\n\n")
@@ -44,6 +53,8 @@ class Host:
     
     def handle_ack(self, ack_seq):
         return
+    
+
     def attach_neighbour(self, ip, neighbour):
         self.neighbours[ip] = neighbour
     
@@ -61,20 +72,28 @@ class Host:
         print(self.name, ": Layer 3: Segment delivered to Transport Layer")
         print("\n\n")
         
-        self.process_segment(segment)
+        self.process_segment(segment, packet["src_ip"])
 
         return
     
-    def process_segment(self, segment):
+    def process_segment(self, segment, src_ip):
         print(self.name, ": Layer 4:  Segment received from Network Layer")
 
+        t = Transport(segment["src_port"], segment["dst_port"], segment["type"], segment["data"])
 
         print(self.name, ": Layer 4:   DATA segment delivered to Application Layer. Data size=",len(segment["data"]))
         # Complete checksum in here (or in the segment object itself but we will need to do a lot of conversion to put it in object (something to think about))
 
+            # if segment["type"] == 1:
+            #     print(self.name, ": Layer 4: ACK recieved")
+                
+
+
+        # Complete checksum in here (or in the segment object itself but we will need to do a lot of conversion to put it in object (something to think about))
 
 
         return
+    
     # Routing is different fom host to router so the function will be within their respective classes
     def routing(self, packet):
         dest_ip = packet['dest_ip']
