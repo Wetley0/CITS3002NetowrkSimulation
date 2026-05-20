@@ -22,20 +22,36 @@ class Host:
         # If we can find a better method to bring in objects to the class to send data to then good
 
     def send_data(self, data, dest_ip, type, dest_port):
+        print(f"{self.name}: Layer 4: Data received from Application Layer. Data size={len(data)}")
 
         payload_segment = Transport(self.port, dest_port, type, data).encapsulate()
+        print(f"{self.name}: Layer 4: Checksum computed")
+        print(f"{self.name}: Layer 4: Segment created by adding transport layer header ({data}, seq={type}) (encapsulation)")
+        print(f"{self.name}: Layer 4: Segment sent to Network Layer")
+        print("\n\n")
+
         packet = Network(self.ip, dest_ip, 17, 0, payload_segment).encapsulate()
-        # print(packet)
-        
+        print(f"{self.name}: Segment received from Transport Layer: SRC_IP={packet["src_ip"]}, DST_IP={packet["dest_ip"]}, TTL={packet["ttl"]}")
+        print(f"{self.name}: Destination IP read: {packet["dest_ip"]}")
         interface, next_hop = self.routing(packet)
-        print(self.name, ": Layer 3: Packet forwarded to Data Link Layer")
+        print(f"{self.name}: Routing table lookup performed")
+        print(f"{self.name}: Next-hop IP determined: {next_hop}")
+        print(f"{self.name}: Outgoing interface selected")
+        print(f"{self.name}: Layer 3: Packet forwarded to Data Link Layer")
+        print("\n\n")
 
         # Keep in mind for later I am passing the next hop and interface as parameters. (that do not go in init of datalink object) I do not know how you are meant to actually do so check this later when working
         # Also we may not need interface in the routing tables for hosts but now it is just a blank string maybe delete later
+        print(f"{self.name}: Packet received from Network Layer")
         dest_mac = self.mac_table_lookup(next_hop)
+        print(f"{self.name}: Destination MAC lookup for next-hop IP ({next_hop}) → {dest_mac}")
         frame = Datalink(self.mac, dest_mac, "0x0800", packet).encapsulate()
+        print(f"{self.name}: rame created: SRC_MAC={frame["src_mac"]}, DST_MAC={frame["dest_mac"]}")
         router = self.mac_obj_table[dest_mac]
+        print(f"{self.name}: Frame sent")
+        print("\n\n")
         router.receive_frame(frame, interface)
+        
         return
     
     # Incomign interface i beleive should not work this way (potentially looking at src_mac and finding it from there)
