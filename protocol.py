@@ -21,6 +21,7 @@ class Network:
         self.protocol = protocol
         self.tot_len = len(payload_segment)
         self.payload_segment = payload_segment
+    
     def encapsulate(self):
         packet = {
             "src_ip": self.src_ip,
@@ -29,8 +30,7 @@ class Network:
             "protocol": self.protocol,
             "payload_segment": self.payload_segment
         }
-        return packet
-
+        return packet  
 
 class Transport:
     def __init__ (self, src_port, dest_port, type, data):
@@ -59,6 +59,14 @@ class Transport:
         return segment
     
     def checksum_calc(self):
-        return
+        # Adds up ASCII values for each letter in the message
+        total = 0
+        for letter in self.data:
+            total += ord(letter)
+        # Includes values of other values in message
+        total += self.dest_port + self.src_port + self.seq_num
+
+        # The maximum size has to be 2 byte number. Max 2 byte number is 65536, so this keeps it in the range
+        return total % 65536
     
     # Eventually will need some functions for segmentation and rdt2.2 and a way to max out at 50 bytes!!
