@@ -28,9 +28,9 @@ class Host:
         frame = Datalink(self.mac, dest_mac, "0x0800", packet).encapsulate()
         router = self.mac_obj_table[dest_mac]
         router.receive_frame(frame, interface)
-        
         return
-    def receive(self, frame):
+    def receive_frame(self, frame, incoming_interface):
+        print("frame recieved from router", frame, incoming_interface)
         return
     def handle_ack(self, ack_seq):
         return
@@ -60,16 +60,56 @@ class Host:
     def mac_table_lookup(self, next_hop):
         return self.mac_table[next_hop]
 
+
 class Router:
-    def __init__(self, name, routing_table, mac_obj_table={}):
+    def __init__(self, name, mac, routing_table, mac_table, mac_obj_table={}):
         self.name = name
+        self.mac = mac
         self.routing_table = routing_table
-        self.mac_table = {}
+        self.mac_table = mac_table
         self.mac_obj_table = mac_obj_table
     def receive_frame(self, frame, incoming_interface):
         print("frame received", frame, "With interface", incoming_interface)
+
+        print("Not aware of interface yet still needs to be added")
+        
+        payload_packet = frame['payload_packet']
+        self.process_packet(payload_packet)
         return
+    
     def process_packet(self, packet):
+        interface, next_hop = self.routing(packet)
+        dest_mac = self.mac_table_lookup(next_hop)
+        self.forward_packet(packet, interface, dest_mac)
+        return 
+    def routing(self, packet):
+        dest_ip = packet['dest_ip']
+
+        packet['ttl'] -= 1
+
+        print(self.name,": Layer 3: Destination IP read: ", dest_ip)
+        print("HELLLLO", self.routing_table.items())
+        for network, (interface, next_hop) in self.routing_table.items():
+            if network != "default" and dest_ip.startswith(network):
+                break
+        else:
+            interface, next_hop = self.routing_table["default"]
+
+        print(self.name, ": Layer 3: Routing table lookup performed")
+        print(self.name, ": Layer 3: Next-hop IP determined: ", next_hop)
+
+        print(self.name, ": Layer 3: Outgoing interface selected ", interface)
+        
+        return interface, next_hop
+    def forward_packet(self, packet, outgoing_interface, dest_mac):
+        frame = Datalink(self.mac[outgoing_interface], dest_mac, "0x0800", packet).encapsulate()
+        print("Router Next hop", dest_mac)
+
+        host = self.mac_obj_table[dest_mac]
+        host.receive_frame(frame, outgoing_interface)
         return
-    def forward_packet(self, packet, outgoing_interface, next_mac):
+    def mac_table_lookup(self, next_hop):
+        print("the next hop", next_hop)
+        return self.mac_table[next_hop]
+    def discover_interface(self, incoming_frame):
         return
