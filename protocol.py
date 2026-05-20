@@ -4,6 +4,14 @@ class Datalink:
         self.dest_mac = dest_mac
         self.type = type
         self.payload_packet = payload_packet
+    def encapsulate(self):
+        frame = {
+            "src_mac": self.src_mac,
+            "dest_mac": self.dest_mac,
+            "type": self.type,
+            "payload_packet": self.payload_packet
+        }
+        return frame
 
 class Network:
     def __init__ (self, src_ip, dest_ip, protocol, tot_len, payload_segment):
@@ -19,18 +27,10 @@ class Network:
             "src_ip": self.src_ip,
             "dest_ip": self.dest_ip,
             "ttl": self.ttl,
-            "protocol": self.protocol
+            "protocol": self.protocol,
+            "payload_segment": self.payload_segment
         }
-        return packet
-
-class DataLinkLayer:
-    def __init__(self, mac_address, mac_table, name_node):
-        self.mac_address = mac_address
-        self.mac_table = mac_table
-        self.name_node = name_node
-    
-    def recieve(self, frame):
-        return    
+        return packet  
 
 class Transport:
     def __init__ (self, src_port, dest_port, type, data):

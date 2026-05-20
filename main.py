@@ -4,23 +4,44 @@ import config
 
 class Main:
     def __init__ (self):
-        self.host_a = Host("A", config.HOST_A_IP, config.HOST_A_MAC, "LAN1")
-        self.host_b = Host("B", config.HOST_B_IP, config.HOST_B_MAC, "LAN2")
+        self.host_a = Host("Host A",
+                        {"10.0.1": ("", "10.0.1.10"),"default": ("", "10.0.1.1")},
+                        {"10.0.1.1": "BB:BB:BB:BB:BB:BB"},
+                        config.HOST_A_IP,
+                        config.HOST_A_MAC,
+                        "LAN1")
+        
+        self.host_b = Host("Host B", {"default": "10.0.2.1"}, {"10.0.2.1": "BB:BB:BB:BB:BB:BB"}, config.HOST_B_IP, config.HOST_B_MAC, "LAN2")
+
 
         self.router = Router("R1", {
-            config.HOST_A_IP: ("LAN1", config.R1_IP),
-            config.HOST_B_IP: ("LAN2", config.R2_IP),
-        })
+            "Interface1": "BB:BB:BB:BB:BB:BB",
+            "Interface2": "CC:CC:CC:CC:CC:CC"
+        },
+        {
+            config.HOST_A_IP: ("Interface1", config.R1_IP),
+            config.HOST_B_IP: ("Interface2", config.R2_IP),
+        },
+        {"10.0.1.1": "AA:AA:AA:AA:AA:AA", "10.0.2.1": "DD:DD:DD:DD:DD:DD"},
+        {"AA:AA:AA:AA:AA:AA": self.host_a, "DD:DD:DD:DD:DD:DD": self.host_b}
+        )
+
+        self.host_a.mac_obj_table = {"BB:BB:BB:BB:BB:BB": self.router}
+        self.host_b.mac_obj_table = {"CC:CC:CC:CC:CC:CC": self.router}
+        
+
         return
     def send_data(self, src_host, dest_host, data):
-        segment_init = Transport(src_host.port, dest_host.port, src_host.seq, data)
-        segment = segment_init.encapsulate()
-        packet_init = Network(src_host.ip, dest_host.ip, 17, 0, segment)
-        packet = packet_init.encapsulate()
-        frame = Datalink()
+        src_host.send_data(data, dest_host.ip, dest_host.port)
+        
+        # segment_init = Transport(src_host.port, dest_host.port, src_host.seq, data)
+        # segment = segment_init.encapsulate()
+        # packet_init = Network(src_host.ip, dest_host.ip, 17, 0, segment)
+        # packet = packet_init.encapsulate()
+        # frame = Datalink()
 
-        R1_datalink = Datalink
-        R1_recieve = R1_datalink.recieve_frame(frame)
+        # R1_datalink = Datalink
+        # R1_recieve = R1_datalink.recieve_frame(frame)
 
         # print(segment.length)
         # print(segment.data_bytes)
