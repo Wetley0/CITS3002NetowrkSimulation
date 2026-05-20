@@ -112,17 +112,11 @@ class Host:
     def routing(self, packet):
         dest_ip = packet['dest_ip']
 
-        print(f"{self.name}: Layer 3: Destination IP read: {dest_ip}")
         for network, (interface, next_hop) in self.routing_table.items():
             if network != "default" and dest_ip.startswith(network):
                 break
         else:
             interface, next_hop = self.routing_table["default"]
-
-        print(f"{self.name}: Layer 3: Routing table lookup performed")
-        print(f"{self.name}: Layer 3: Next-hop IP determined: {next_hop}")
-
-        print(f"{self.name}: Layer 3: Outgoing interface selected {interface}")
         
         return interface, next_hop
     
@@ -186,16 +180,21 @@ class Router:
         return 
     
     def routing(self, packet):
-        dest_ip = packet['dest_ip']
+        dest_ip = packet["dest_ip"]
 
-        print(f"{self.name}: Layer 3: Destination IP read: {dest_ip}")
         for network, (interface, next_hop) in self.routing_table.items():
-            if network != "default" and dest_ip.startswith(network):
-                break
-        else:
-            interface, next_hop = self.routing_table["default"]
-        
-        return interface, next_hop
+
+            # Match subnet
+            if dest_ip.startswith(network):
+
+                # Directly connected network
+                if next_hop == "DIRECT":
+                    next_hop = dest_ip
+
+                return interface, next_hop
+
+        # Default route
+        return self.routing_table["default"]
     
     def forward_packet(self, packet, outgoing_interface, next_hop):
         print(f"{self.name}: Layer 2: Packet received from Network Layer")

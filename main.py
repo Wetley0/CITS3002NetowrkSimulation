@@ -14,16 +14,28 @@ class Main:
         self.host_b = Host("Host B", {"default": ("", "10.0.2.1")}, {"10.0.2.1": "CC:CC:CC:CC:CC:CC"}, config.HOST_B_IP, config.HOST_B_MAC, "LAN2")
 
 
-        self.router = Router("Router R1", {
-            "Interface1": "BB:BB:BB:BB:BB:BB",
-            "Interface2": "CC:CC:CC:CC:CC:CC"
-        },
-        {
-            config.HOST_A_IP: ("Interface1", config.R1_IP),
-            config.HOST_B_IP: ("Interface2", config.R2_IP),
-        },
-        {"10.0.1.1": "AA:AA:AA:AA:AA:AA", "10.0.2.1": "DD:DD:DD:DD:DD:DD"},
-        {"AA:AA:AA:AA:AA:AA": self.host_a, "DD:DD:DD:DD:DD:DD": self.host_b}
+        self.router = Router(
+            "Router R1",
+
+            {
+                "Interface1": "BB:BB:BB:BB:BB:BB",
+                "Interface2": "CC:CC:CC:CC:CC:CC"
+            },
+
+            {
+                "10.0.1": ("Interface1", "DIRECT"),
+                "10.0.2": ("Interface2", "DIRECT"),
+            },
+
+            {
+                "10.0.1.10": "AA:AA:AA:AA:AA:AA",
+                "10.0.2.20": "DD:DD:DD:DD:DD:DD"
+            },
+
+            {
+                "AA:AA:AA:AA:AA:AA": self.host_a,
+                "DD:DD:DD:DD:DD:DD": self.host_b
+            }
         )
 
         self.host_a.mac_obj_table = {"BB:BB:BB:BB:BB:BB": self.router}
