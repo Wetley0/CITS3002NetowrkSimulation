@@ -15,13 +15,20 @@ class Main:
 
 
         self.router = Router("R1", {
-            config.HOST_A_IP: ("LAN1", config.R1_IP),
-            config.HOST_B_IP: ("LAN2", config.R2_IP),
-        })
+            "Interface1": "BB:BB:BB:BB:BB:BB",
+            "Interface2": "CC:CC:CC:CC:CC:CC"
+        },
+        {
+            config.HOST_A_IP: ("Interface1", config.R1_IP),
+            config.HOST_B_IP: ("Interface2", config.R2_IP),
+        },
+        {"10.0.1.1": "AA:AA:AA:AA:AA:AA", "10.0.2.1": "DD:DD:DD:DD:DD:DD"},
+        {"AA:AA:AA:AA:AA:AA": self.host_a, "DD:DD:DD:DD:DD:DD": self.host_b}
+        )
 
         self.host_a.mac_obj_table = {"BB:BB:BB:BB:BB:BB": self.router}
         self.host_b.mac_obj_table = {"CC:CC:CC:CC:CC:CC": self.router}
-        self.router.mac_obj_table = {"AA:AA:AA:AA:AA:AA": self.host_a, "DD:DD:DD:DD:DD:DD": self.host_b}
+        
 
         return
     def send_data(self, src_host, dest_host, data):
