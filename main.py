@@ -32,7 +32,7 @@ class Main:
 
         return
     def send_data(self, src_host, dest_host, data):
-        src_host.send_data(data, dest_host.ip, 0, dest_host.port)
+        src_host.send_data(data, dest_host.ip, 0, dest_host.port, 0)
         
         # segment_init = Transport(src_host.port, dest_host.port, src_host.seq, data)
         # segment = segment_init.encapsulate()

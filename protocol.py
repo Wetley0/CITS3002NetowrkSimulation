@@ -33,26 +33,26 @@ class Network:
         return packet  
 
 class Transport:
-    def __init__ (self, src_port, dest_port, type, data):
+    def __init__ (self, src_port, dest_port, type, data, checksum, seq_num):
         self.src_port = src_port
         self.dest_port = dest_port
         
         # 0 fror data 1 for ACK
         self.type = type
-        self.seq_num = 0
+        self.seq_num = seq_num
         self.data = data
         
         self.length = 10 + len(data)
-        self.checksum = self.checksum_calc()
+        self.checksum = checksum
 
     def encapsulate(self):
         segment = {
             "src_port": self.src_port,
-            "dst_port": self.dest_port,
+            "dest_port": self.dest_port,
             "length": self.length,
             "checksum": self.checksum,
             "type": self.type,   # 0 = DATA, 1 = ACK
-            "seq": self.seq_num,
+            "seq_num": self.seq_num,
             "data": self.data
         }
         return segment

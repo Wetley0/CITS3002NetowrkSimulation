@@ -21,11 +21,13 @@ class Host:
         self.mac_obj_table = mac_obj_table
         # If we can find a better method to bring in objects to the class to send data to then good
 
-    def send_data(self, data, dest_ip, type, dest_port):
+    def send_data(self, data, dest_ip, type, dest_port, seq_num):
         print(f"{self.name}: Layer 4: Data received from Application Layer. Data size={len(data)}")
 
-        payload_segment = Transport(self.port, dest_port, type, data).encapsulate()
+        checksum = self.checksum_calc(data, dest_port, self.port, seq_num)
         print(f"{self.name}: Layer 4: Checksum computed")
+
+        payload_segment = Transport(self.port, dest_port, type, data, checksum, seq_num).encapsulate()
         print(f"{self.name}: Layer 4: Segment created by adding transport layer header ({data}, seq={type}) (encapsulation)")
         print(f"{self.name}: Layer 4: Segment sent to Network Layer")
         print("\n\n")
@@ -56,13 +58,13 @@ class Host:
     
     # Incomign interface i beleive should not work this way (potentially looking at src_mac and finding it from there)
     def receive_frame(self, frame, incoming_interface):
-        print(self.name, ": Layer 2: Frame recieved")
-        print(self.name, ": Layer 2: Source MAC learned: ", frame["src_mac"])
+        print(f"{self.name}: Layer 2: Frame recieved")
+        print(f"{self.name}: Layer 2: Source MAC learned: {frame["src_mac"]}")
         
 
 
         payload_packet = frame['payload_packet']
-        print(self.name, ": Layer 2: Packet delivered to Network layer")
+        print(f"{self.name}: Layer 2: Packet delivered to Network layer")
         print("\n\n")
         self.process_packet(payload_packet)
         return
@@ -90,23 +92,22 @@ class Host:
         print("\n\n")
         
         self.process_segment(segment, packet["src_ip"])
-
         return
     
     def process_segment(self, segment, src_ip):
         print(self.name, ": Layer 4:  Segment received from Network Layer")
 
         # Complete checksum in here (or in the segment object itself but we will need to do a lot of conversion to put it in object (something to think about))
-        t = Transport(segment["src_port"], segment["dst_port"], segment["type"], segment["data"])
-
-        if segment["checksum"] == t.checksum and segment["type"] == 0:
+        # t = Transport(segment["src_port"], segment["dst_port"], segment["type"], segment["data"])
+        checksum = self.checksum_calc(segment["data"], segment["dest_port"], segment["src_port"], segment["seq_num"])
+        if segment["checksum"] == checksum and segment["type"] == 0:
             print(f"{self.name}: Layer 4: Segment received form Network Layer")
             print(f"{self.name}: Layer 4: Data segment delivered to Application Layer. Data size={len(segment["data"])}")
 
             #ACK to send back to origional host
-            self.send_data("", src_ip, 1, segment["src_port"])
+            self.send_data("", src_ip, 1, segment["src_port"], 0)
         elif segment["type"] == 1:
-            print(f"{self.name}: Layer 4: ACK received: seq={segment["seq"]}")
+            print(f"{self.name}: Layer 4: ACK received: seq={segment["seq_num"]}")
         return
     
     # Routing is different fom host to router so the function will be within their respective classes
@@ -130,6 +131,17 @@ class Host:
     # Debugs will needed to be added to this later (like what is that ip address does not exist in mac_table so on)
     def mac_table_lookup(self, next_hop):
         return self.mac_table[next_hop]
+    
+    def checksum_calc(self, data, dest_port, src_port, seq_num):
+        # Adds up ASCII values for each letter in the message
+        total = 0
+        for letter in data:
+            total += ord(letter)
+        # Includes values of other values in message
+        total += dest_port + src_port + seq_num
+
+        # The maximum size has to be 2 byte number. Max 2 byte number is 65536, so this keeps it in the range
+        return total % 65536
 
 
 class Router:
@@ -144,19 +156,19 @@ class Router:
         if interface == None:
             return
         
-        print(self.name, ": Layer 2: Frame received on", interface)
-        print(self.name, ": Layer 2: Source MAC learned:", frame["src_mac"], "on ", interface)
+        print(f"{self.name}: Layer 2: Frame received on {interface}")
+        print(f"{self.name}: Layer 2: Source MAC learned: {frame["src_mac"]} on {interface}")
         
         payload_packet = frame['payload_packet']
-        print(self.name, ": Layer 2: Packet delivered to Network Layer")
+        print(f"{self.name}: Layer 2: Packet delivered to Network Layer")
         print("\n\n")
 
         self.process_packet(payload_packet)
         return
     
     def process_packet(self, packet):
-        print(self.name, ": Layer 3: Packet received from Data Link layer: SRC_IP ", packet["src_ip"], ", DST_IP ", packet["dest_ip"], ", TTL=", packet["ttl"])
-        print(self.name, ": Layer 3: Destination IP read: ", packet["dest_ip"])
+        print(f"{self.name}: Layer 3: Packet received from Data Link layer: SRC_IP={packet["src_ip"]} DST_IP={packet["dest_ip"]} TTL={packet["ttl"]}")
+        print(f"{self.name}: Layer 3: Destination IP read: {packet["dest_ip"]}")
 
         packet['ttl'] -= 1
         print(f"{self.name}: Layer 3: TTL decremented: {packet['ttl']+1} → {packet["ttl"]}")
