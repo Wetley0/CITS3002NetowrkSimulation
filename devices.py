@@ -64,9 +64,13 @@ class Host:
         return
     
     def process_segment(self, segment):
-        print(self.name, ": Layer 3:  Segment received from Network Layer")
+        print(self.name, ": Layer 4:  Segment received from Network Layer")
 
-        
+
+        print(self.name, ": Layer 4:   DATA segment delivered to Application Layer. Data size=", len(segment["data"]))
+        # Complete checksum in here (or in the segment object itself but we will need to do a lot of conversion to put it in object (something to think about))
+
+
 
         return
     # Routing is different fom host to router so the function will be within their respective classes
