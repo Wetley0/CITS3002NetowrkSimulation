@@ -39,7 +39,6 @@ class Transport:
         
         # 0 fror data 1 for ACK
         self.type = type
-
         self.seq_num = 0
         self.data = data
         
