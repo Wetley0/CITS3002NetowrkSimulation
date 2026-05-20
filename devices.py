@@ -163,6 +163,9 @@ class Router:
         print(f"{self.name}: Layer 3: Destination IP read: {packet["dest_ip"]}")
 
         packet['ttl'] -= 1
+        if packet['ttl'] == 0:
+            print(f"{self.name}: Layer 3: Error TTL has reached the end of it's lifecycle")
+            return
         print(f"{self.name}: Layer 3: TTL decremented: {packet['ttl']+1} → {packet["ttl"]}")
 
 
@@ -225,4 +228,5 @@ class Router:
             print(self.name, ": Error: Interface data sent to does not exist")
             return None
         return curr_interface
+    
     
