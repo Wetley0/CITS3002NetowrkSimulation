@@ -47,6 +47,7 @@ class Host:
 
         payload_packet = frame['payload_packet']
         print(self.name, ": Layer 2: Packet delivered to Network layer")
+        print("\n\n")
         self.process_packet(payload_packet)
         return
     
@@ -69,6 +70,7 @@ class Host:
 
         segment = packet["payload_segment"]
         print(self.name, ": Layer 3: Segment delivered to Transport Layer")
+        print("\n\n")
         
         self.process_segment(segment, packet["src_ip"])
 
@@ -79,16 +81,8 @@ class Host:
 
         t = Transport(segment["src_port"], segment["dst_port"], segment["type"], segment["data"])
 
-        if segment["checksum"] == t.checksum:
-            print(self.name, ": Layer 4:  Checksum verified" )
-            
-            # Sequence is just 0 for now
-            if segment["type"] == 0:
-                print(self.name, ": Layer 4:  Segment received from Network Layer")
-                print(self.name, ": Layer 4:   DATA segment delivered to Application Layer. Data size=", len(segment["data"]))
-
-                # Construct the ACK message to be sent back
-                self.send_data("",src_ip, 1, segment["src_port"])
+        print(self.name, ": Layer 4:   DATA segment delivered to Application Layer. Data size=",len(segment["data"]))
+        # Complete checksum in here (or in the segment object itself but we will need to do a lot of conversion to put it in object (something to think about))
 
             # if segment["type"] == 1:
             #     print(self.name, ": Layer 4: ACK recieved")
@@ -105,7 +99,6 @@ class Host:
         dest_ip = packet['dest_ip']
 
         print(self.name,": Layer 3: Destination IP read: ", dest_ip)
-        print("HELLLLO", self.routing_table.items())
         for network, (interface, next_hop) in self.routing_table.items():
             if network != "default" and dest_ip.startswith(network):
                 break
@@ -132,47 +125,80 @@ class Router:
         self.mac_table = mac_table
         self.mac_obj_table = mac_obj_table
     def receive_frame(self, frame, incoming_interface):
-        print("frame received", frame, "With interface", incoming_interface)
-
-        print("Not aware of interface yet still needs to be added")
+        interface = self.discover_interface(frame)
+        if interface == None:
+            return
+        
+        print(self.name, ": Layer 2: Frame received on", interface)
+        print(self.name, ": Layer 2: Source MAC learned:", frame["src_mac"], "on ", interface)
         
         payload_packet = frame['payload_packet']
+        print(self.name, ": Layer 2: Packet delivered to Network Layer")
+        print("\n\n")
+
         self.process_packet(payload_packet)
         return
     
     def process_packet(self, packet):
+        print(self.name, ": Layer 3: Packet received from Data Link layer: SRC_IP ", packet["src_ip"], ", DST_IP ", packet["dest_ip"], ", TTL=", packet["ttl"])
+        print(self.name, ": Layer 3: Destination IP read: ", packet["dest_ip"])
+
+        packet['ttl'] -= 1
+        print(f"{self.name}: Layer 3: TTL decremented: {packet['ttl']+1} → {packet["ttl"]}")
+
+
         interface, next_hop = self.routing(packet)
-        dest_mac = self.mac_table_lookup(next_hop)
-        self.forward_packet(packet, interface, dest_mac)
+        print(f"{self.name}: Layer 3: Routing table lookup performed")
+        print(f"{self.name}: Layer 3: Next-hop IP determined: {next_hop}")
+        print(f"{self.name}: Layer 3: Outgoing interface selected ({interface})")
+        print(f"{self.name}: Layer 3: Packet forwarded to Data Link Layer")
+
+        print("\n\n")
+
+        
+
+        self.forward_packet(packet, interface, next_hop)
         return 
+    
     def routing(self, packet):
         dest_ip = packet['dest_ip']
 
-        packet['ttl'] -= 1
-
         print(self.name,": Layer 3: Destination IP read: ", dest_ip)
-        print("HELLLLO", self.routing_table.items())
         for network, (interface, next_hop) in self.routing_table.items():
             if network != "default" and dest_ip.startswith(network):
                 break
         else:
             interface, next_hop = self.routing_table["default"]
-
-        print(self.name, ": Layer 3: Routing table lookup performed")
-        print(self.name, ": Layer 3: Next-hop IP determined: ", next_hop)
-
-        print(self.name, ": Layer 3: Outgoing interface selected ", interface)
         
         return interface, next_hop
-    def forward_packet(self, packet, outgoing_interface, dest_mac):
+    
+    def forward_packet(self, packet, outgoing_interface, next_hop):
+        print(f"{self.name}: Layer 2: Packet received from Network Layer")
+        dest_mac = self.mac_table_lookup(next_hop)
+
+        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP {next_hop} → {dest_mac}")
         frame = Datalink(self.mac[outgoing_interface], dest_mac, "0x0800", packet).encapsulate()
-        print("Router Next hop", dest_mac)
 
         host = self.mac_obj_table[dest_mac]
+        print(f"{self.name}: Layer 2: Frame forwarded on Interface 2")
+        print("\n\n")
         host.receive_frame(frame, outgoing_interface)
         return
+    
     def mac_table_lookup(self, next_hop):
-        print("the next hop", next_hop)
         return self.mac_table[next_hop]
+    
+    # Again the only 2 ways i can think about doing this is a look (like now) or passign interface as a parameter (needs looking into)
     def discover_interface(self, incoming_frame):
-        return
+        dest_mac = incoming_frame['dest_mac']
+        curr_interface = None
+        for interface, mac in self.mac.items():
+            if mac == dest_mac:
+                curr_interface = interface
+                break
+
+        if curr_interface == None:
+            print(self.name, ": Error: Interface data sent to does not exist")
+            return None
+        return curr_interface
+    

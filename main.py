@@ -14,7 +14,7 @@ class Main:
         self.host_b = Host("Host B", {"default": ("", "10.0.2.1")}, {"10.0.2.1": "CC:CC:CC:CC:CC:CC"}, config.HOST_B_IP, config.HOST_B_MAC, "LAN2")
 
 
-        self.router = Router("R1", {
+        self.router = Router("Router R1", {
             "Interface1": "BB:BB:BB:BB:BB:BB",
             "Interface2": "CC:CC:CC:CC:CC:CC"
         },
