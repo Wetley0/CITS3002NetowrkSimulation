@@ -29,18 +29,46 @@ class Host:
         router = self.mac_obj_table[dest_mac]
         router.receive_frame(frame, interface)
         return
+    
+    # Incomign interface i beleive should not work this way (potentially looking at src_mac and finding it from there)
     def receive_frame(self, frame, incoming_interface):
-        print("frame recieved from router", frame, incoming_interface, self.ip)
+        print(self.name, ": Layer 2: Frame recieved")
 
-        payload_packet = frame['payload_packet']
+        print(self.name, ": Layer 2: Source MAC learned: ", frame["src_mac"])
         
-
+        payload_packet = frame['payload_packet']
+        print(self.name, ": Layer 2: Packet delivered to Network layer")
+        self.process_packet(payload_packet)
         return
+    
     def handle_ack(self, ack_seq):
         return
     def attach_neighbour(self, ip, neighbour):
         self.neighbours[ip] = neighbour
     
+    def process_packet(self, packet):
+        print(self.name, ": Layer 3: Packet received from Data Link layer: SRC_IP ", packet["src_ip"], ", DST_IP ", packet["dest_ip"], ", TTL=", packet["ttl"])
+        print(self.name, ": Layer 3: Destination IP read: ", packet["dest_ip"])
+
+        if packet["dest_ip"] == self.ip:
+            print(self.name, ": Layer 3: Packet identified as local delivery")
+        else:
+            print(self.name, ": Layer 3: Error IP is not meant for this host")
+            return
+
+        segment = packet["payload_segment"]
+        print(self.name, ": Layer 3: Segment delivered to Transport Layer")
+        
+        self.process_segment(segment)
+
+        return
+    
+    def process_segment(self, segment):
+        print(self.name, ": Layer 3:  Segment received from Network Layer")
+
+        
+
+        return
     # Routing is different fom host to router so the function will be within their respective classes
     def routing(self, packet):
         dest_ip = packet['dest_ip']
