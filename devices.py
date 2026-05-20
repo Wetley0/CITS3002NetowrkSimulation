@@ -62,6 +62,7 @@ class Host:
         print(self.name, ": Layer 3: Packet received from Data Link layer: SRC_IP ", packet["src_ip"], ", DST_IP ", packet["dest_ip"], ", TTL=", packet["ttl"])
         print(self.name, ": Layer 3: Destination IP read: ", packet["dest_ip"])
 
+
         if packet["dest_ip"] == self.ip:
             print(self.name, ": Layer 3: Packet identified as local delivery")
         else:
@@ -79,19 +80,17 @@ class Host:
     def process_segment(self, segment, src_ip):
         print(self.name, ": Layer 4:  Segment received from Network Layer")
 
+        # Complete checksum in here (or in the segment object itself but we will need to do a lot of conversion to put it in object (something to think about))
         t = Transport(segment["src_port"], segment["dst_port"], segment["type"], segment["data"])
 
-        print(self.name, ": Layer 4:   DATA segment delivered to Application Layer. Data size=",len(segment["data"]))
-        # Complete checksum in here (or in the segment object itself but we will need to do a lot of conversion to put it in object (something to think about))
+        if segment["checksum"] == t.checksum and segment["type"] == 0:
+            print(f"{self.name}: Layer 4: Segment received form Network Layer")
+            print(f"{self.name}: Layer 4: Data segment delivered to Application Layer. Data size={len(segment["data"])}")
 
-            # if segment["type"] == 1:
-            #     print(self.name, ": Layer 4: ACK recieved")
-                
-
-
-        # Complete checksum in here (or in the segment object itself but we will need to do a lot of conversion to put it in object (something to think about))
-
-
+            #ACK to send back to origional host
+            self.send_data("", src_ip, 1, segment["src_port"])
+        elif segment["type"] == 1:
+            print(f"{self.name}: Layer 4: ACK received: seq={segment["seq"]}")
         return
     
     # Routing is different fom host to router so the function will be within their respective classes
