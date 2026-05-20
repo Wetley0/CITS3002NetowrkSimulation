@@ -30,7 +30,11 @@ class Host:
         router.receive_frame(frame, interface)
         return
     def receive_frame(self, frame, incoming_interface):
-        print("frame recieved from router", frame, incoming_interface)
+        print("frame recieved from router", frame, incoming_interface, self.ip)
+
+        payload_packet = frame['payload_packet']
+        
+
         return
     def handle_ack(self, ack_seq):
         return
