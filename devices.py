@@ -10,24 +10,45 @@ class Host:
         self.mac_table = mac_table
         self.routing_table = routing_table
 
-        # The ACK doesn't know the desired ip's, so we are storing it here for now
-        self.dest_ip = 0
-        
-        self.seq = 0
-        self.expected_ack = 0
-
         # For now maybe for good not sure but this will hold a dictionary of the objects connected to hosts
         self.mac_obj_table = mac_obj_table
         # If we can find a better method to bring in objects to the class to send data to then good
 
-    def send_data(self, data, dest_ip, type, dest_port, seq_num):
-        print(f"{self.name}: Layer 4: Data received from Application Layer. Data size={len(data)}")
+        # RDT2.2 LOGIC
+        self.dest_ip = "" # Problem if more than one node is sending info to us
+        # Logic for when data size is over 500
+        self.remaining_data = ""
+        self.unacknowledged_data = None
 
-        checksum = self.checksum_calc(data, dest_port, self.port, seq_num)
+        self.seq = 0 # When correct ACK recieved change this
+        self.expected_ack = 0 # Dont know if this is required, similar to seq but include for readability
+
+    # Call self.send_data(self.remaining_data,...) when ACK successful and there is still remaining data, and change seq num and expected_ack
+
+    # Seperates segment into 500 byte chunks and prepares for next segment to be sent, and possible failures according to RDT2.2
+    def send_data(self, data, dest_ip, type, dest_port):
+        first_490_bytes = data[:490]
+        self.remaining_data = data[490:]
+
+        print(f"{self.name}: Layer 4: Data received from Application Layer. Data size={len(data)}")
+        checksum = self.checksum_calc(first_490_bytes, dest_port, self.port, self.seq)
         print(f"{self.name}: Layer 4: Checksum computed")
 
+        #### REMOVE THIS LATER
+        print(len(self.remaining_data))
+        
+        self.dest_ip = dest_ip
+        self.unacknowledged_data = {"data": first_490_bytes, "dest_ip": dest_ip, "type" : type, "dest_port" : dest_port, "seq": self.seq, "checksum": checksum}
+
+        self.send_500_bytes(first_490_bytes, dest_ip, type, dest_port, self.seq, checksum)
+
+
+    def send_500_bytes(self, data, dest_ip, type, dest_port, seq_num, checksum):
+
+        types = {0: "DATA", 1: "ACK"}
+
         payload_segment = Transport(self.port, dest_port, type, data, checksum, seq_num).encapsulate()
-        print(f"{self.name}: Layer 4: Segment created by adding transport layer header ({data}, seq={type}) (encapsulation)")
+        print(f"{self.name}: Layer 4: Segment created by adding transport layer header ({types[type]}, seq={self.seq}) (encapsulation)")
         print(f"{self.name}: Layer 4: Segment sent to Network Layer")
         print("\n\n")
 
@@ -55,27 +76,23 @@ class Host:
         
         return
     
+    # maybe add logic if the mac address does not match the mac address of this host
     # Incomign interface i beleive should not work this way (potentially looking at src_mac and finding it from there)
     def receive_frame(self, frame, incoming_interface):
         print(f"{self.name}: Layer 2: Frame recieved")
         print(f"{self.name}: Layer 2: Source MAC learned: {frame["src_mac"]}")
         
-
-
         payload_packet = frame['payload_packet']
         print(f"{self.name}: Layer 2: Packet delivered to Network layer")
         print("\n\n")
         self.process_packet(payload_packet)
         return
-    
-    def handle_ack(self, ack_seq):
-        return
-    
 
     def attach_neighbour(self, ip, neighbour):
         self.neighbours[ip] = neighbour
     
     def process_packet(self, packet):
+
         print(f"{self.name}: Layer 3: Packet received from Data Link layer: SRC_IP={packet["src_ip"]} DST_IP={packet["dest_ip"]} TTL={packet["ttl"]}")
         print(f"{self.name}: Layer 3: Destination IP read: {packet["dest_ip"]}")
 
@@ -94,21 +111,51 @@ class Host:
         return
     
     def process_segment(self, segment, src_ip):
-        # Complete checksum in here (or in the segment object itself but we will need to do a lot of conversion to put it in object (something to think about))
-        # t = Transport(segment["src_port"], segment["dst_port"], segment["type"], segment["data"])
         checksum = self.checksum_calc(segment["data"], segment["dest_port"], segment["src_port"], segment["seq_num"])
-        if segment["checksum"] == checksum and segment["type"] == 0:
-            print(f"{self.name}: Layer 4: Segment received form Network Layer")
-            print(f"{self.name}: Layer 4: Data segment delivered to Application Layer. Data size={len(segment["data"])}")
+        print(f"{self.name}: Layer 4: Segment received form Network Layer")
 
-            #ACK to send back to origional host
-            self.send_data("", src_ip, 1, segment["src_port"], 0)
-        elif segment["type"] == 1:
-            print(f"{self.name}: Layer 4: ACK received: seq={segment["seq_num"]}")
+        if segment["checksum"] == checksum:
+            print(f"{self.name}: Layer 4: Checksum verified")
+
+            # The Host has recieved DATA
+            # No need to check if data is a retransmission of old data because "No frame corruption"
+            if segment["type"] == 0:
+                print(f"{self.name}: Layer 4: Data segment delivered to Application Layer. Data size={len(segment["data"])}")
+
+                # Create ACK message, and give back to sender 
+                ACK_checksum = self.checksum_calc("", segment["src_port"], segment["dest_port"], segment["seq_num"])
+                self.send_500_bytes("", src_ip, 1, segment["src_port"], segment["seq_num"], ACK_checksum)
+
+            # The Host has recieved ACK
+            elif segment["type"] == 1:
+                self.handle_ack(segment["seq_num"], segment)
+
+        # Invalide Checksum meaning that it is ignored and handled by timeout
         else:
-            print(f"{self.name}: Layer 4: Error checksum does not match")
-            return
-        return
+            print(f"{self.name}: Layer 4: Invalid Checksum")
+
+
+    def handle_ack(self, ack_num, segment):
+        if ack_num == self.expected_ack:
+            print(f"{self.name}: Layer 4: ACK received: seq={ack_num}")
+
+            self.seq = 1 - self.seq
+            self.expected_ack = 1 - self.expected_ack
+
+            if self.remaining_data != "":
+                self.send_data(self.remaining_data, self.dest_ip, 0, self.unacknowledged_data["dest_port"])
+    
+        else:
+            print(f"{self.name}: Layer 4: Incorrect ACK received, retransmitting segment")
+            self.send_500_bytes(
+                self.unacknowledged_data["data"],
+                self.unacknowledged_data["dest_ip"],
+                self.unacknowledged_data["type"],
+                self.unacknowledged_data["dest_port"],
+                self.unacknowledged_data["seq"],
+                self.unacknowledged_data["checksum"]
+            )
+
     
     # Routing is different fom host to router so the function will be within their respective classes
     def routing(self, packet):

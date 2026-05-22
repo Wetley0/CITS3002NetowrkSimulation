@@ -23,7 +23,7 @@ class Main:
         return
     
     def send_data(self, src_host, dest_host, data):
-        src_host.send_data(data, dest_host.ip, 0, dest_host.port, 0)
+        src_host.send_data(data, dest_host.ip, 0, dest_host.port)
 
 if __name__ == "__main__":
     size = int(sys.argv[1])
