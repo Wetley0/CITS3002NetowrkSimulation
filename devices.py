@@ -1,18 +1,17 @@
 from protocol import Transport, Network, Datalink
 class Host:
-    def __init__(self, name, routing_table, mac_table, ip, mac, network, mac_obj_table={}, port=8000):
+    def __init__(self, name, routing_table, mac_table, ip, mac, mac_obj_table={}, port=8000):
         self.name = name
         self.ip = ip
         self.mac = mac
-        self.network = network
+        # Removing network as it is not being used but keeping it in case we need to bring it back
+        # self.network = network
         self.port = port
         self.mac_table = mac_table
         self.routing_table = routing_table
 
-
         # The ACK doesn't know the desired ip's, so we are storing it here for now
-        self.dest_ip = 0;
-
+        self.dest_ip = 0
         
         self.seq = 0
         self.expected_ack = 0
@@ -35,7 +34,7 @@ class Host:
         packet = Network(self.ip, dest_ip, 17, 0, payload_segment).encapsulate()
         print(f"{self.name}: Layer 3: Segment received from Transport Layer: SRC_IP={packet["src_ip"]}, DST_IP={packet["dest_ip"]}, TTL={packet["ttl"]}")
         print(f"{self.name}: Layer 3: Destination IP read: {packet["dest_ip"]}")
-        interface, next_hop = self.routing(packet)
+        next_hop = self.routing(packet)
         print(f"{self.name}: Layer 3: Routing table lookup performed")
         print(f"{self.name}: Layer 3: Next-hop IP determined: {next_hop}")
         print(f"{self.name}: Layer 3: Outgoing interface selected")
@@ -52,7 +51,7 @@ class Host:
         router = self.mac_obj_table[dest_mac]
         print(f"{self.name}: Layer 2: Frame sent")
         print("\n\n")
-        router.receive_frame(frame, interface)
+        router.receive_frame(frame)
         
         return
     
@@ -106,19 +105,22 @@ class Host:
             self.send_data("", src_ip, 1, segment["src_port"], 0)
         elif segment["type"] == 1:
             print(f"{self.name}: Layer 4: ACK received: seq={segment["seq_num"]}")
+        else:
+            print(f"{self.name}: Layer 4: Error checksum does not match")
+            return
         return
     
     # Routing is different fom host to router so the function will be within their respective classes
     def routing(self, packet):
         dest_ip = packet['dest_ip']
 
-        for network, (interface, next_hop) in self.routing_table.items():
+        for network, next_hop in self.routing_table.items():
             if network != "default" and dest_ip.startswith(network):
                 break
         else:
-            interface, next_hop = self.routing_table["default"]
+            next_hop = self.routing_table["default"]
         
-        return interface, next_hop
+        return next_hop
     
     # Debugs will needed to be added to this later (like what is that ip address does not exist in mac_table so on)
     def mac_table_lookup(self, next_hop):
@@ -137,17 +139,18 @@ class Host:
 
 
 class Router:
-    def __init__(self, name, mac, routing_table, mac_table, mac_obj_table={}):
-        self.name = name
+    def __init__(self, names_dict, mac, routing_table, mac_table, mac_obj_table={}):
+        self.names_dict = names_dict
+        self.name = None
         self.mac = mac
         self.routing_table = routing_table
         self.mac_table = mac_table
         self.mac_obj_table = mac_obj_table
-    def receive_frame(self, frame, incoming_interface):
+    def receive_frame(self, frame):
         interface = self.discover_interface(frame)
         if interface == None:
             return
-        
+        self.name = self.names_dict[interface]
         print(f"{self.name}: Layer 2: Frame received on {interface}")
         print(f"{self.name}: Layer 2: Source MAC learned: {frame["src_mac"]} on {interface}")
         
@@ -163,6 +166,9 @@ class Router:
         print(f"{self.name}: Layer 3: Destination IP read: {packet["dest_ip"]}")
 
         packet['ttl'] -= 1
+        if packet['ttl'] == 0:
+            print(f"{self.name}: Layer 3: Error TTL has reached the end of it's lifecycle")
+            return
         print(f"{self.name}: Layer 3: TTL decremented: {packet['ttl']+1} → {packet["ttl"]}")
 
 
@@ -225,4 +231,5 @@ class Router:
             print(self.name, ": Error: Interface data sent to does not exist")
             return None
         return curr_interface
+    
     
