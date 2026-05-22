@@ -1,6 +1,7 @@
 from devices import Host, Router
 from protocol import Datalink, Network, Transport
 import config
+import sys
 
 class Main:
     def __init__ (self):
@@ -62,5 +63,6 @@ class Main:
         # print(binary_string)
 
 if __name__ == "__main__":
+    size = int(sys.argv[1])
     app = Main()
-    app.send_data(app.host_a, app.host_b, "Hello")
+    app.send_data(app.host_a, app.host_b, "A"*size)

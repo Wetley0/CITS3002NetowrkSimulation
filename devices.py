@@ -9,10 +9,8 @@ class Host:
         self.mac_table = mac_table
         self.routing_table = routing_table
 
-
         # The ACK doesn't know the desired ip's, so we are storing it here for now
-        self.dest_ip = 0;
-
+        self.dest_ip = 0
         
         self.seq = 0
         self.expected_ack = 0
@@ -106,6 +104,9 @@ class Host:
             self.send_data("", src_ip, 1, segment["src_port"], 0)
         elif segment["type"] == 1:
             print(f"{self.name}: Layer 4: ACK received: seq={segment["seq_num"]}")
+        else:
+            print(f"{self.name}: Layer 4: Error checksum does not match")
+            return
         return
     
     # Routing is different fom host to router so the function will be within their respective classes
