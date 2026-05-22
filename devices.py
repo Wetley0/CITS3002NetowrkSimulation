@@ -34,7 +34,7 @@ class Host:
         packet = Network(self.ip, dest_ip, 17, 0, payload_segment).encapsulate()
         print(f"{self.name}: Layer 3: Segment received from Transport Layer: SRC_IP={packet["src_ip"]}, DST_IP={packet["dest_ip"]}, TTL={packet["ttl"]}")
         print(f"{self.name}: Layer 3: Destination IP read: {packet["dest_ip"]}")
-        interface, next_hop = self.routing(packet)
+        next_hop = self.routing(packet)
         print(f"{self.name}: Layer 3: Routing table lookup performed")
         print(f"{self.name}: Layer 3: Next-hop IP determined: {next_hop}")
         print(f"{self.name}: Layer 3: Outgoing interface selected")
@@ -51,7 +51,7 @@ class Host:
         router = self.mac_obj_table[dest_mac]
         print(f"{self.name}: Layer 2: Frame sent")
         print("\n\n")
-        router.receive_frame(frame, interface)
+        router.receive_frame(frame)
         
         return
     
@@ -114,13 +114,13 @@ class Host:
     def routing(self, packet):
         dest_ip = packet['dest_ip']
 
-        for network, (interface, next_hop) in self.routing_table.items():
+        for network, next_hop in self.routing_table.items():
             if network != "default" and dest_ip.startswith(network):
                 break
         else:
-            interface, next_hop = self.routing_table["default"]
+            next_hop = self.routing_table["default"]
         
-        return interface, next_hop
+        return next_hop
     
     # Debugs will needed to be added to this later (like what is that ip address does not exist in mac_table so on)
     def mac_table_lookup(self, next_hop):
@@ -146,7 +146,7 @@ class Router:
         self.routing_table = routing_table
         self.mac_table = mac_table
         self.mac_obj_table = mac_obj_table
-    def receive_frame(self, frame, incoming_interface):
+    def receive_frame(self, frame):
         interface = self.discover_interface(frame)
         if interface == None:
             return

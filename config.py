@@ -3,7 +3,7 @@ HOST_A_NAME = "Host A"
 HOST_A_IP = "10.0.1.10"
 HOST_A_MAC = "AA:AA:AA:AA:AA:AA"
 # The first route is not necessary at all but keep it for now
-HOST_A_ROUTING_TABLE = {"10.0.1": ("", "10.0.1.10"),"default": ("", "10.0.1.1")}
+HOST_A_ROUTING_TABLE = {"10.0.1": "10.0.1.10","default": "10.0.1.1"}
 HOST_A_MAC_TABLE = {"10.0.1.1": "BB:BB:BB:BB:BB:BB"}
 
 # Host B
@@ -11,7 +11,7 @@ HOST_B_NAME = "Host B"
 HOST_B_IP = "10.0.2.20"
 HOST_B_MAC = "DD:DD:DD:DD:DD:DD"
 # The first route is not necessary at all but keep it for now
-HOST_B_ROUTING_TABLE = {"10.0.2": ("", "10.0.2.20"), "default": ("", "10.0.2.1")}
+HOST_B_ROUTING_TABLE = {"10.0.2": "10.0.2.20", "default": "10.0.2.1"}
 HOST_B_MAC_TABLE = {"10.0.2.1": "CC:CC:CC:CC:CC:CC"}
 
 
