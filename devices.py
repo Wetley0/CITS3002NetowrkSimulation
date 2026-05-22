@@ -1,10 +1,11 @@
 from protocol import Transport, Network, Datalink
 class Host:
-    def __init__(self, name, routing_table, mac_table, ip, mac, network, mac_obj_table={}, port=8000):
+    def __init__(self, name, routing_table, mac_table, ip, mac, mac_obj_table={}, port=8000):
         self.name = name
         self.ip = ip
         self.mac = mac
-        self.network = network
+        # Removing network as it is not being used but keeping it in case we need to bring it back
+        # self.network = network
         self.port = port
         self.mac_table = mac_table
         self.routing_table = routing_table
