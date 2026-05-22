@@ -149,7 +149,7 @@ class Router:
         interface = self.discover_interface(frame)
         if interface == None:
             return
-        self.name = self.names[interface]
+        self.name = self.names_dict[interface]
         print(f"{self.name}: Layer 2: Frame received on {interface}")
         print(f"{self.name}: Layer 2: Source MAC learned: {frame["src_mac"]} on {interface}")
         
