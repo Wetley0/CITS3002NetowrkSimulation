@@ -138,8 +138,9 @@ class Host:
 
 
 class Router:
-    def __init__(self, name, mac, routing_table, mac_table, mac_obj_table={}):
-        self.name = name
+    def __init__(self, names_dict, mac, routing_table, mac_table, mac_obj_table={}):
+        self.names_dict = names_dict
+        self.name = None
         self.mac = mac
         self.routing_table = routing_table
         self.mac_table = mac_table
@@ -148,7 +149,7 @@ class Router:
         interface = self.discover_interface(frame)
         if interface == None:
             return
-        
+        self.name = self.names[interface]
         print(f"{self.name}: Layer 2: Frame received on {interface}")
         print(f"{self.name}: Layer 2: Source MAC learned: {frame["src_mac"]} on {interface}")
         

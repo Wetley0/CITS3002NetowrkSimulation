@@ -14,9 +14,9 @@ class Main:
         
         self.host_b = Host("Host B", {"default": ("", "10.0.2.1")}, {"10.0.2.1": "CC:CC:CC:CC:CC:CC"}, config.HOST_B_IP, config.HOST_B_MAC, "LAN2")
 
-
+        # Setting up names based on the interface (dictionary type)
         self.router = Router(
-            "Router R1",
+            {"Interface1": "Router R1", "Interface2": "Router R2"},
 
             {
                 "Interface1": "BB:BB:BB:BB:BB:BB",
@@ -46,21 +46,6 @@ class Main:
         return
     def send_data(self, src_host, dest_host, data):
         src_host.send_data(data, dest_host.ip, 0, dest_host.port, 0)
-        
-        # segment_init = Transport(src_host.port, dest_host.port, src_host.seq, data)
-        # segment = segment_init.encapsulate()
-        # packet_init = Network(src_host.ip, dest_host.ip, 17, 0, segment)
-        # packet = packet_init.encapsulate()
-        # frame = Datalink()
-
-        # R1_datalink = Datalink
-        # R1_recieve = R1_datalink.recieve_frame(frame)
-
-        # print(segment.length)
-        # print(segment.data_bytes)
-        # binary_list = [f"{b:08b}" for b in segment.data_bytes]
-        # binary_string = " ".join(binary_list)
-        # print(binary_string)
 
 if __name__ == "__main__":
     size = int(sys.argv[1])
