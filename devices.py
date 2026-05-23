@@ -21,6 +21,8 @@ class Host:
         self.unacknowledged_data = None
 
         self.seq = 0 # When correct ACK recieved change this
+
+        # Remove this as we only need the one seq number
         self.expected_ack = 0 # Dont know if this is required, similar to seq but include for readability
 
     # Call self.send_data(self.remaining_data,...) when ACK successful and there is still remaining data, and change seq num and expected_ack
@@ -33,9 +35,6 @@ class Host:
         print(f"{self.name}: Layer 4: Data received from Application Layer. Data size={len(data)}")
         checksum = self.checksum_calc(first_490_bytes, dest_port, self.port, self.seq)
         print(f"{self.name}: Layer 4: Checksum computed")
-
-        #### REMOVE THIS LATER
-        print(len(self.remaining_data))
         
         self.dest_ip = dest_ip
         self.unacknowledged_data = {"data": first_490_bytes, "dest_ip": dest_ip, "type" : type, "dest_port" : dest_port, "seq": self.seq, "checksum": checksum}
