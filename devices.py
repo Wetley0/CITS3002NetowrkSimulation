@@ -47,7 +47,7 @@ class Host:
         types = {0: "DATA", 1: "ACK"}
 
         payload_segment = Transport(self.port, dest_port, type, data, checksum, seq_num).encapsulate()
-        print(f"{self.name}: Layer 4: Segment created by adding transport layer header ({types[type]}, seq={self.seq}) (encapsulation)")
+        print(f"{self.name}: Layer 4: Segment created by adding Transport Layer header ({types[type]}, seq={self.seq}) (encapsulation)")
         print(f"{self.name}: Layer 4: Segment sent to Network Layer")
         print("\n\n")
 
@@ -75,12 +75,12 @@ class Host:
     
     # maybe add logic if the mac address does not match the mac address of this host
     # Incomign interface i beleive should not work this way (potentially looking at src_mac and finding it from there)
-    def receive_frame(self, frame, incoming_interface):
-        print(f"{self.name}: Layer 2: Frame recieved")
+    def receive_frame(self, frame):
+        print(f"{self.name}: Layer 2: Frame received")
         print(f"{self.name}: Layer 2: Source MAC learned: {frame["src_mac"]}")
         
         payload_packet = frame['payload_packet']
-        print(f"{self.name}: Layer 2: Packet delivered to Network layer")
+        print(f"{self.name}: Layer 2: Packet delivered to Network Layer")
         print("\n\n")
         return self.process_packet(payload_packet)
 
@@ -89,7 +89,7 @@ class Host:
     
     def process_packet(self, packet):
 
-        print(f"{self.name}: Layer 3: Packet received from Data Link layer: SRC_IP={packet["src_ip"]} DST_IP={packet["dest_ip"]} TTL={packet["ttl"]}")
+        print(f"{self.name}: Layer 3: Packet received from Data Link Layer: SRC_IP={packet["src_ip"]}, DST_IP={packet["dest_ip"]}, TTL={packet["ttl"]}")
         print(f"{self.name}: Layer 3: Destination IP read: {packet["dest_ip"]}")
 
 
@@ -115,7 +115,7 @@ class Host:
             # The Host has recieved DATA
             # No need to check if data is a retransmission of old data because "No frame corruption"
             if segment["type"] == 0:
-                print(f"{self.name}: Layer 4: Data segment delivered to Application Layer. Data size={len(segment["data"])}")
+                print(f"{self.name}: Layer 4: DATA segment delivered to Application Layer. Data size={len(segment["data"])}")
 
                 # Create ACK message, and give back to sender 
                 ACK_checksum = self.checksum_calc("", segment["src_port"], segment["dest_port"], segment["seq_num"])
@@ -123,7 +123,7 @@ class Host:
 
             # The Host has recieved ACK
             elif segment["type"] == 1:
-                return self.handle_ack(segment["seq_num"], segment)
+                return self.handle_ack(segment["seq_num"])
 
         # Invalide Checksum meaning that it is ignored and handled by timeout
         else:
@@ -131,7 +131,7 @@ class Host:
             return
 
 
-    def handle_ack(self, ack_num, segment):
+    def handle_ack(self, ack_num):
         if ack_num == self.expected_ack:
             print(f"{self.name}: Layer 4: ACK received: seq={ack_num}")
 
@@ -152,7 +152,6 @@ class Host:
                 self.unacknowledged_data["checksum"]
             )
 
-    
     # Routing is different fom host to router so the function will be within their respective classes
     def routing(self, packet):
         dest_ip = packet['dest_ip']
@@ -205,7 +204,7 @@ class Router:
         return self.process_packet(payload_packet)
     
     def process_packet(self, packet):
-        print(f"{self.name}: Layer 3: Packet received from Data Link layer: SRC_IP={packet["src_ip"]} DST_IP={packet["dest_ip"]} TTL={packet["ttl"]}")
+        print(f"{self.name}: Layer 3: Packet received from Data Link Layer: SRC_IP={packet["src_ip"]}, DST_IP={packet["dest_ip"]}, TTL={packet["ttl"]}")
         print(f"{self.name}: Layer 3: Destination IP read: {packet["dest_ip"]}")
 
         packet['ttl'] -= 1
@@ -248,11 +247,12 @@ class Router:
 
         print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP {next_hop} → {dest_mac}")
         frame = Datalink(self.mac[outgoing_interface], dest_mac, "0x0800", packet).encapsulate()
+        print(f"{self.name}: Layer 2: Frame created: SRC_MAC={self.mac[outgoing_interface]}, DST_MAC={dest_mac}")
 
         host = self.mac_obj_table[dest_mac]
-        print(f"{self.name}: Layer 2: Frame forwarded on Interface 2")
+        print(f"{self.name}: Layer 2: Frame forwarded on {outgoing_interface}")
         print("\n\n")
-        return host.receive_frame(frame, outgoing_interface)
+        return host.receive_frame(frame)
     
     def mac_table_lookup(self, next_hop):
         return self.mac_table[next_hop]
@@ -270,5 +270,3 @@ class Router:
             print(self.name, ": Error: Interface data sent to does not exist")
             return None
         return curr_interface
-    
-    
