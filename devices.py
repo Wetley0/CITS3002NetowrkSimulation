@@ -39,7 +39,7 @@ class Host:
         self.dest_ip = dest_ip
         self.unacknowledged_data = {"data": first_490_bytes, "dest_ip": dest_ip, "type" : type, "dest_port" : dest_port, "seq": self.seq, "checksum": checksum}
 
-        self.send_500_bytes(first_490_bytes, dest_ip, type, dest_port, self.seq, checksum)
+        return self.send_500_bytes(first_490_bytes, dest_ip, type, dest_port, self.seq, checksum)
 
 
     def send_500_bytes(self, data, dest_ip, type, dest_port, seq_num, checksum):
@@ -71,9 +71,7 @@ class Host:
         router = self.mac_obj_table[dest_mac]
         print(f"{self.name}: Layer 2: Frame sent")
         print("\n\n")
-        router.receive_frame(frame)
-        
-        return
+        return router.receive_frame(frame)
     
     # maybe add logic if the mac address does not match the mac address of this host
     # Incomign interface i beleive should not work this way (potentially looking at src_mac and finding it from there)
@@ -84,8 +82,7 @@ class Host:
         payload_packet = frame['payload_packet']
         print(f"{self.name}: Layer 2: Packet delivered to Network layer")
         print("\n\n")
-        self.process_packet(payload_packet)
-        return
+        return self.process_packet(payload_packet)
 
     def attach_neighbour(self, ip, neighbour):
         self.neighbours[ip] = neighbour
@@ -106,8 +103,7 @@ class Host:
         print(f"{self.name}: Layer 3: Segment delivered to Transport Layer")
         print("\n\n")
         
-        self.process_segment(segment, packet["src_ip"])
-        return
+        return self.process_segment(segment, packet["src_ip"])
     
     def process_segment(self, segment, src_ip):
         checksum = self.checksum_calc(segment["data"], segment["dest_port"], segment["src_port"], segment["seq_num"])
@@ -123,15 +119,16 @@ class Host:
 
                 # Create ACK message, and give back to sender 
                 ACK_checksum = self.checksum_calc("", segment["src_port"], segment["dest_port"], segment["seq_num"])
-                self.send_500_bytes("", src_ip, 1, segment["src_port"], segment["seq_num"], ACK_checksum)
+                return self.send_500_bytes("", src_ip, 1, segment["src_port"], segment["seq_num"], ACK_checksum)
 
             # The Host has recieved ACK
             elif segment["type"] == 1:
-                self.handle_ack(segment["seq_num"], segment)
+                return self.handle_ack(segment["seq_num"], segment)
 
         # Invalide Checksum meaning that it is ignored and handled by timeout
         else:
             print(f"{self.name}: Layer 4: Invalid Checksum")
+            return
 
 
     def handle_ack(self, ack_num, segment):
@@ -142,11 +139,11 @@ class Host:
             self.expected_ack = 1 - self.expected_ack
 
             if self.remaining_data != "":
-                self.send_data(self.remaining_data, self.dest_ip, 0, self.unacknowledged_data["dest_port"])
+                return self.send_data(self.remaining_data, self.dest_ip, 0, self.unacknowledged_data["dest_port"])
     
         else:
             print(f"{self.name}: Layer 4: Incorrect ACK received, retransmitting segment")
-            self.send_500_bytes(
+            return self.send_500_bytes(
                 self.unacknowledged_data["data"],
                 self.unacknowledged_data["dest_ip"],
                 self.unacknowledged_data["type"],
@@ -192,6 +189,7 @@ class Router:
         self.routing_table = routing_table
         self.mac_table = mac_table
         self.mac_obj_table = mac_obj_table
+    
     def receive_frame(self, frame):
         interface = self.discover_interface(frame)
         if interface == None:
@@ -204,8 +202,7 @@ class Router:
         print(f"{self.name}: Layer 2: Packet delivered to Network Layer")
         print("\n\n")
 
-        self.process_packet(payload_packet)
-        return
+        return self.process_packet(payload_packet)
     
     def process_packet(self, packet):
         print(f"{self.name}: Layer 3: Packet received from Data Link layer: SRC_IP={packet["src_ip"]} DST_IP={packet["dest_ip"]} TTL={packet["ttl"]}")
@@ -226,10 +223,7 @@ class Router:
 
         print("\n\n")
 
-        
-
-        self.forward_packet(packet, interface, next_hop)
-        return 
+        return self.forward_packet(packet, interface, next_hop)
     
     def routing(self, packet):
         dest_ip = packet["dest_ip"]
@@ -258,8 +252,7 @@ class Router:
         host = self.mac_obj_table[dest_mac]
         print(f"{self.name}: Layer 2: Frame forwarded on Interface 2")
         print("\n\n")
-        host.receive_frame(frame, outgoing_interface)
-        return
+        return host.receive_frame(frame, outgoing_interface)
     
     def mac_table_lookup(self, next_hop):
         return self.mac_table[next_hop]
