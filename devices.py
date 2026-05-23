@@ -181,9 +181,8 @@ class Host:
 
 
 class Router:
-    def __init__(self, names_dict, mac, routing_table, mac_table, mac_obj_table={}):
-        self.names_dict = names_dict
-        self.name = None
+    def __init__(self, name, mac, routing_table, mac_table, mac_obj_table={}):
+        self.name = name
         self.mac = mac
         self.routing_table = routing_table
         self.mac_table = mac_table
@@ -193,7 +192,6 @@ class Router:
         interface = self.discover_interface(frame)
         if interface == None:
             return
-        self.name = self.names_dict[interface]
         print(f"{self.name}: Layer 2: Frame received on {interface}")
         print(f"{self.name}: Layer 2: Source MAC learned: {frame["src_mac"]} on {interface}")
         
@@ -245,7 +243,7 @@ class Router:
         print(f"{self.name}: Layer 2: Packet received from Network Layer")
         dest_mac = self.mac_table_lookup(next_hop)
 
-        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP {next_hop} → {dest_mac}")
+        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP ({next_hop}) → {dest_mac}")
         frame = Datalink(self.mac[outgoing_interface], dest_mac, "0x0800", packet).encapsulate()
         print(f"{self.name}: Layer 2: Frame created: SRC_MAC={self.mac[outgoing_interface]}, DST_MAC={dest_mac}")
 

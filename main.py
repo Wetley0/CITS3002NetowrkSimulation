@@ -11,10 +11,10 @@ class Main:
 
         # Setting up names based on the interface (dictionary type)
         self.router = Router(
-            {config.R1_INTERFACE: config.R1_NAME, config.R2_INTERFACE: config.R2_NAME},
-            {config.R1_INTERFACE: config.R1_MAC, config.R2_INTERFACE: config.R2_MAC},
-            config.R_ROUTING_TABLE,
-            config.R_MAC_TABLE)
+            config.R1_NAME,
+            {config.R1_INTERFACE1: config.R1_MAC1, config.R1_INTERFACE2: config.R1_MAC2},
+            config.R1_ROUTING_TABLE,
+            config.R1_MAC_TABLE)
         
         # Set the object connecitons in the network
         self.router.mac_obj_table = {"AA:AA:AA:AA:AA:AA": self.host_a, "DD:DD:DD:DD:DD:DD": self.host_b}
