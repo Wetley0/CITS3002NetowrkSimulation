@@ -56,16 +56,3 @@ class Transport:
             "data": self.data
         }
         return segment
-    
-    def checksum_calc(self):
-        # Adds up ASCII values for each letter in the message
-        total = 0
-        for letter in self.data:
-            total += ord(letter)
-        # Includes values of other values in message
-        total += self.dest_port + self.src_port + self.seq_num
-
-        # The maximum size has to be 2 byte number. Max 2 byte number is 65536, so this keeps it in the range
-        return total % 65536
-    
-    # Eventually will need some functions for segmentation and rdt2.2 and a way to max out at 50 bytes!!
