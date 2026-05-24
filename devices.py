@@ -47,7 +47,7 @@ class Host:
 
         # Encapsulating on Transport Layer to create a segment
         payload_segment = Transport(self.port, dest_port, type, data, checksum, seq_num).encapsulate()
-        print(f"{self.name}: Layer 4: Segment created by adding transport layer header ({types[type]}, seq={self.seq}) (encapsulation)")
+        print(f"{self.name}: Layer 4: Segment created by adding transport layer header ({types[type]}, seq={seq_num}) (encapsulation)")
         print(f"{self.name}: Layer 4: Segment sent to Network Layer")
         print("\n\n")
 
