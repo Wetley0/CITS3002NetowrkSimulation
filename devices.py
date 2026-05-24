@@ -126,7 +126,11 @@ class Host:
             # The Host has recieved DATA
             # No need to check if data is a retransmission of old data because "No frame corruption"
             if segment["type"] == 0:
-                print(f"{self.name}: Layer 4: DATA segment delivered to Application Layer. Data size={len(segment["data"])}")
+                if segment["seq_num"] == self.expected_seq:
+                    print(f"{self.name}: Layer 4: DATA segment delivered to Application Layer. Data size={len(segment['data'])}")
+                    self.expected_seq = 1 - self.expected_seq
+                else:
+                    print(f"{self.name}: Layer 4: Duplicate DATA segment detected (seq={segment['seq_num']}), discarding and re-sending ACK")
 
                 # Create ACK message, and give back to sender 
                 ACK_checksum = self.checksum_calc("", segment["src_port"], segment["dest_port"], segment["seq_num"])
