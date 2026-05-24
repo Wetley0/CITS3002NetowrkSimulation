@@ -20,9 +20,9 @@ class Host:
         self.unacknowledged_data = None
 
         self.seq = 0 # When correct ACK recieved change this
+        self.expected_seq = 0
 
-        # Remove this as we only need the one seq number
-        self.expected_ack = 0 # Dont know if this is required, similar to seq but include for readability
+        self.expected_ack = 0 # similar to seq but include for readability
 
         # Call self.send_data(self.remaining_data,...) when ACK successful and there is still remaining data, and change seq num and expected_ack
 
@@ -47,7 +47,13 @@ class Host:
 
         # Encapsulating on Transport Layer to create a segment
         payload_segment = Transport(self.port, dest_port, type, data, checksum, seq_num).encapsulate()
-        print(f"{self.name}: Layer 4: Segment created by adding transport layer header ({types[type]}, seq={seq_num}) (encapsulation)")
+        
+        # If data is ACK do not say encapsulate
+        if type == 0:
+            print(f"{self.name}: Layer 4: Segment created by adding transport layer header ({types[type]}, seq={seq_num}) (encapsulation)")
+        else:
+            print(f"{self.name}: Layer 4: Segment created by adding transport layer header ({types[type]}, seq={seq_num})")
+
         print(f"{self.name}: Layer 4: Segment sent to Network Layer")
         print("\n\n")
 
