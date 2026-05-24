@@ -61,7 +61,7 @@ Where `<message_size>` is the number of bytes to send. For example:
 python main.py 500
 ```
 
-The message sent will be a message from Host A to Host B
+The message sent will be a message from Host A to Host B. To change the host connection simply swap them in main.py
 
-Any message larger than 490 bytes is automatically fragmented into 490 byte sections and sent across multiple segments. The output is printed out showing each layer's processing steps as the data travels from source to destination.
+Any message larger than 500 bytes is automatically fragmented into 500 byte sections and sent across multiple segments. The output is printed out showing each layer's processing steps as the data travels from source to destination.
 
