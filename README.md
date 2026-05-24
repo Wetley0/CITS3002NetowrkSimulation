@@ -4,6 +4,7 @@ A python simulation of how a packet travels through a simplified OSI network. Fr
 
 ## Contributors
 | Name | Student Number |
+|------|----------------|
 | Wesley Conti | 23499047 |
 | Andrew Gibson | 23865288 |
 
