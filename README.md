@@ -47,7 +47,7 @@ Data is encapsulated layer by layer on the sending side, and decapsulated in rev
 - Stop and wait with alternating sequence numbers 0 and 1
 - ACK handling
 - TTL decrement and expiry at routers
-- Message fragmentation, data exceeding 490 bytes is split and sent one after another
+- Message fragmentation, data exceeding 500 bytes is split and sent one after another
 
 ## Usage
 
