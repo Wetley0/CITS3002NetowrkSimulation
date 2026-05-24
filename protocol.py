@@ -1,9 +1,12 @@
 class Datalink:
+    # Initialisaiton for Data Link Layer Object (for encapsulation)
     def __init__ (self, src_mac, dest_mac, type, payload_packet):
         self.src_mac = src_mac
         self.dest_mac = dest_mac
         self.type = type
         self.payload_packet = payload_packet
+    
+    # Encapsulate Data Link Layer data/header into a dictionary
     def encapsulate(self):
         frame = {
             "src_mac": self.src_mac,
@@ -14,6 +17,7 @@ class Datalink:
         return frame
 
 class Network:
+    # Initialisaiton for Network Layer Object (for encapsulation)
     def __init__ (self, src_ip, dest_ip, protocol, tot_len, payload_segment):
         self.src_ip = src_ip
         self.dest_ip = dest_ip
@@ -22,6 +26,7 @@ class Network:
         self.tot_len = len(payload_segment)
         self.payload_segment = payload_segment
     
+    # Encapsulate Network Layer data/header into a dictionary
     def encapsulate(self):
         packet = {
             "src_ip": self.src_ip,
@@ -33,6 +38,7 @@ class Network:
         return packet  
 
 class Transport:
+    # Initialisaiton for Transport Layer Object (for encapsulation)
     def __init__ (self, src_port, dest_port, type, data, checksum, seq_num):
         self.src_port = src_port
         self.dest_port = dest_port
@@ -45,6 +51,7 @@ class Transport:
         self.length = 10 + len(data)
         self.checksum = checksum
 
+    # Encapsulate Transport Layer data/header into a dictionary
     def encapsulate(self):
         segment = {
             "src_port": self.src_port,
@@ -56,16 +63,3 @@ class Transport:
             "data": self.data
         }
         return segment
-    
-    def checksum_calc(self):
-        # Adds up ASCII values for each letter in the message
-        total = 0
-        for letter in self.data:
-            total += ord(letter)
-        # Includes values of other values in message
-        total += self.dest_port + self.src_port + self.seq_num
-
-        # The maximum size has to be 2 byte number. Max 2 byte number is 65536, so this keeps it in the range
-        return total % 65536
-    
-    # Eventually will need some functions for segmentation and rdt2.2 and a way to max out at 50 bytes!!
