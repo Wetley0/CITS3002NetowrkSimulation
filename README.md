@@ -2,6 +2,18 @@
 
 A python simulation of how a packet travels through a simplified OSI network. From application data down to Ethernet frames.
 
+## Contributors
+| Name | Student Number |
+| Wesley Conti | 23499047 |
+| Andrew Gibson | 23865288 |
+
+## Assumptions
+
+Some portions of the assignment led to some room for interpretation so we will be assuming the following:
+- It states that this assignment is logical simulation only so we assume we do not need to convert the encapsultated data into bytes.
+- It also states this assignemnt it is assumed no packet, frame corruption, and all transmissions are deterministic. therefore, a time out property (for rdt2.2) will not be necessary iand not implemented.
+- Since this is a fixed network the router routes only to hosts, not other routers.
+
 ## File Structure
 
 | File | Description |
