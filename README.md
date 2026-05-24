@@ -40,14 +40,15 @@ Data is encapsulated layer by layer on the sending side, and decapsulated in rev
 
 ## Key Concepts Simulated
 
-- Encapsulation and decapsulation at each OSI layer
-- Routing table lookups and determing the next hop
+- Encapsulation and decapsulation at each OSI layer -> Encapsulate/Decapsulates data into respoective Segment, Packet and frame for all layers needed to be simulated)
+- Routing table lookups and determing the next hop -> Allows for successful and robust table lookup for next hop
 - MAC address table lookups for layer 2 frame delivery
 - 16-bit checksum calculation and validation, meaning modulo 65536 required.
 - Stop and wait with alternating sequence numbers 0 and 1
 - ACK handling
 - TTL decrement and expiry at routers
 - Message fragmentation, data exceeding 500 bytes is split and sent one after another
+- Duplicate sequence number handling
 
 ## Usage
 
