@@ -130,6 +130,7 @@ class Host:
                     print(f"{self.name}: Layer 4: DATA segment delivered to Application Layer. Data size={len(segment['data'])}")
                     self.expected_seq = 1 - self.expected_seq
                 else:
+                    # Handle duplicate
                     print(f"{self.name}: Layer 4: Duplicate DATA segment detected (seq={segment['seq_num']}), discarding and re-sending ACK")
 
                 # Create ACK message, and give back to sender 
