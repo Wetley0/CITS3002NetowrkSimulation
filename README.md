@@ -11,8 +11,8 @@ A python simulation of how a packet travels through a simplified OSI network. Fr
 ## Assumptions
 
 Some portions of the assignment led to some room for interpretation so we will be assuming the following:
-- It states that this assignment is logical simulation only so we assume we do not need to convert the encapsultated data into bytes.
-- It also states this assignemnt it is assumed no packet, frame corruption, and all transmissions are deterministic. therefore, a time out property (for rdt2.2) will not be necessary iand not implemented.
+- It states that this assignment is logical simulation only so we assume we do not need to convert the encapsulated data into bytes.
+- It also states this assignemnt it is assumed no packet, frame corruption, and all transmissions are deterministic. therefore, a time out property (for rdt2.2) will not be necessary and not implemented.
 - Since this is a fixed network the router routes only to hosts, not other routers.
 
 ## File Structure
@@ -41,7 +41,7 @@ Data is encapsulated layer by layer on the sending side, and decapsulated in rev
 ## Key Concepts Simulated
 
 - Encapsulation and decapsulation at each OSI layer -> Encapsulate/Decapsulates data into respoective Segment, Packet and frame for all layers needed to be simulated)
-- Routing table lookups and determing the next hop -> Allows for successful and robust table lookup for next hop
+- Routing table lookups and determining the next hop -> Allows for successful and robust table lookup for next hop
 - MAC address table lookups for layer 2 frame delivery
 - 16-bit checksum calculation and validation, meaning modulo 65536 required.
 - Stop and wait with alternating sequence numbers 0 and 1
